@@ -134,8 +134,7 @@ static int interpretProgram(char* path) {
 		// CONTROL FLOW
 		case '[':
 			if (*dp == 0) {
-				// NOTE this is NOT run-time efficient!
-				// Implementing a table of jump locations would be optimal!
+				// TODO jump table would be more efficient than seeking every time!
 				int brackets_passed = 0;
 				do {
 					++ip;
