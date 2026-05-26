@@ -1,9 +1,12 @@
 // Leif Larson's Brainf*ck interpreter
 // runs .b or .bf files
 
-#define GOOD_BUFFER 0
-#define PATH_TOO_LONG 1
-#define BAD_PATH_END 2
+#define GOOD_BUFFER     0
+#define PATH_TOO_LONG   1
+#define BAD_PATH_END    2
+#define WRITE_ERROR     3
+#define EOF_ERROR       4
+#define READ_ERROR      5
 
 #include <fstream>
 #include <iostream>
@@ -125,12 +128,28 @@ static int interpretProgram(char* path) {
 
 		// INPUT/OUTPUT
 		case '.':
-			putchar(*dp);
+			auto rv = putchar(*dp);
+			// checks for putchar() failure
+			if (rv == EOF && ferror(stdout)) {
+				std::cerr << "putchar() failure ... " <<
+					"at char # = [" << dp - prog << "] in program @ [" << *path << "]";
+				exit(WRITE_ERROR);
+			}
 			break;
 		case ',':
 			*dp = getchar();
+			// checks for getchar() failure
+			if (feof(stdin)) {
+				std::cerr << "getchar() failure : end of file reached ... " <<
+					"at char # = [" << dp - prog << "] in program @ [" << *path << "]";
+				exit(EOF_ERROR);
+			}
+			else if (ferror(stdin)) {
+        std::cerr << "getchar() failure : unspecified ... " <<
+					"at char # = [" << dp - prog << "] in program @ [" << *path << "]";
+        exit(READ_ERROR);
+    	}
 			break;
-
 		// CONTROL FLOW
 		case '[':
 			if (*dp == 0) {
